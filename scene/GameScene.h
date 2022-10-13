@@ -12,6 +12,7 @@
 #include "DebugCamera.h"
 
 #include "Bullet.h"
+#include "Enemy.h"
 
 /// <summary>
 /// ゲームシーン
@@ -91,4 +92,5 @@ class GameScene {
 	Vector3 ret3DPos;
 	Vector3 myPos;
 	Vector3 resultRet;
+	Enemy enemys[5];
 };

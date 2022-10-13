@@ -77,6 +77,13 @@ void GameScene::Initialize() {
 	viewProjection_.target = Affin::GetWorldTrans(worldTransforms_[0].matWorld_);
 	viewProjection_.eye = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 	viewProjection_.UpdateMatrix();
+
+
+	enemys[0].worldTransForm.translation_ = { -10,0,0 };
+	enemys[1].worldTransForm.translation_ = { 10,0,0 };
+	enemys[2].worldTransForm.translation_ = { 0,0,-10 };
+	enemys[3].worldTransForm.translation_ = { 0,0,10 };
+	enemys[4].worldTransForm.translation_ = { 15,0,10 };
 }
 
 void GameScene::Update() {
@@ -208,6 +215,11 @@ void GameScene::Update() {
 		bullet_->Update(resultRet);
 	}
 
+	//敵更新
+	for (int i = 0; i < _countof(enemys); i++) {
+		enemys[i].Update(objHome_.translation_);
+	}
+
 }
 
 void GameScene::Draw() {
@@ -245,6 +257,9 @@ void GameScene::Draw() {
 	model_->Draw(floor_, viewProjection_, textureHandle_[1]);
 
 	model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[0]);
+	for (int i = 0; i < _countof(enemys); i++) {
+		model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+	}
 
 	if (bullet_) {
 		bullet_->Draw(viewProjection_);

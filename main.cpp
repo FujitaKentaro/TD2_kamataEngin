@@ -47,6 +47,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 3Dモデル静的初期化
 	Model::StaticInitialize();
 
+
+	// 軸方向表示初期化
+	//axisIndicator = AxisIndicator::GetInstance();
+	//axisIndicator->Initialize();
 	primitiveDrawer = PrimitiveDrawer::GetInstance();
 	primitiveDrawer->Initialize();
 #pragma endregion
@@ -67,10 +71,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// ゲームシーンの毎フレーム処理
 		gameScene->Update();
 
+		// 軸表示の更新
+	/*	axisIndicator->Update();*/
+
 		// 描画開始
 		dxCommon->PreDraw();
 		// ゲームシーンの描画
 		gameScene->Draw();
+
+		// 軸表示の描画
+		/*axisIndicator->Draw();*/
 		// プリミティブ描画のリセット
 		primitiveDrawer->Reset();
 		// 描画終了
