@@ -15,6 +15,10 @@ public:
 	Vector3 enemyLeft;
 	//³–ÊƒxƒNƒgƒ‹
 	Vector3 enemyFront;
+	//‰Á‘¬
+	float speed;
+	//time
+	int time;
 
 public:
 	Enemy();

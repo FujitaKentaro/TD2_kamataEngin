@@ -4,6 +4,7 @@ Enemy::Enemy(){
 	worldTransForm.Initialize();
 	isDead = false;
 	YTmp = { 0,1,0 };
+	speed = 0.0008f;
 }
 
 Enemy::~Enemy(){}
@@ -32,7 +33,12 @@ void Enemy::Update(Vector3 obj) {
 		worldTransForm.scale_);
 
 		if (isDead == false) {
-			worldTransForm.translation_ += enemyFront* 0.008;
+			time++;
+			if (time == 2) {
+				speed += 0.0001f;
+				time = 0;
+			}
+			worldTransForm.translation_ += enemyFront* speed;
 		}
 
 		//Œ‹‰Ê‚ð”½‰f
