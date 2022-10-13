@@ -44,6 +44,8 @@ void GameScene::Initialize() {
 	textureHandle_[0] = TextureManager::Load("mario.jpg");
 	textureHandle_[1] = TextureManager::Load("dog.png");
 	textureHandle_[2] = TextureManager::Load("png.png");
+	textureHandle_[3] = TextureManager::Load("inu.png");
+	textureHandle_[4] = TextureManager::Load("ret.png");
 
 	//スプライトの生成
 	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
@@ -147,7 +149,7 @@ void GameScene::Update() {
 		// 親オブジェクト
 		worldTransforms_[0].rotation_.y += KEyeSpeed;
 	}
-	
+
 
 	for (int i = 0; i < _countof(worldTransforms_); i++) {
 
@@ -217,10 +219,14 @@ void GameScene::Update() {
 	Reticle3D();
 
 	Attack();
-
-	if (bullet_)
-	{
-		bullet_->Update(resultRet);
+	/*for (int i = 0; i < _countof(bullet_);) {
+		if (bullet_[i])
+		{
+			bullet_[i]->Update(resultRet);
+		}
+	}*/
+	for (std::unique_ptr<Bullet>& bullet : bullets_) {
+		bullet->Update(resultRet);
 	}
 
 	//敵更新
@@ -264,15 +270,22 @@ void GameScene::Draw() {
 	model_->Draw(worldTransforms_[4], viewProjection_, textureHandle_[0]);*/
 	model_->Draw(floor_, viewProjection_, textureHandle_[1]);
 
-	model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[0]);
+	model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[4]);
 	for (int i = 0; i < _countof(enemys); i++) {
+
 		if (enemys[i].isDead == false) {
 			model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
 		}
 	}
-
-	if (bullet_) {
-		bullet_->Draw(viewProjection_);
+	/*for (int i = 0; i < _countof(bullet_);) {
+		if (bullet_[i])
+		{
+			bullet_[i]->Draw(viewProjection_);
+		}
+	}*/
+	//弾描画
+	for (std::unique_ptr<Bullet>& bullet : bullets_) {
+		bullet->Draw(viewProjection_);
 	}
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -297,21 +310,22 @@ void GameScene::Draw() {
 
 void GameScene::Attack()
 {
-	if (input_->PushKey(DIK_SPACE))
+	if (input_->TriggerKey(DIK_SPACE))
 	{
 		//弾を生成し、初期化
-		Bullet* newbullet = new Bullet();
+		std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
+		
+		//Bullet* newbullet = new Bullet();
 		pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 		ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
 		myPos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 		velo = ret3DPos - myPos;
 		velo.normalize();
-		resultRet = velo * newbullet->speed;
-		newbullet->Initialize(model_, pos);
-
+		resultRet = velo * newBullet->speed;
+		newBullet->Initialize(model_, pos);
 
 		//弾を登録
-		bullet_ = newbullet;
+		bullets_.push_back(std::move(newBullet));
 	}
 }
 
@@ -328,7 +342,9 @@ void GameScene::Reticle3D() {
 	}
 	offset *= kDistancePlayerTo3DReticle;
 	worldTransform3DReticle_.translation_ = offset;
+	worldTransform3DReticle_.matWorld_ = Affin::matScale(worldTransform3DReticle_.scale_);
 	worldTransform3DReticle_.matWorld_ = Affin::matTrans(worldTransform3DReticle_.translation_);
+
 	worldTransform3DReticle_.TransferMatrix();
 
 	DebugText::GetInstance()->SetPos(20, 260);

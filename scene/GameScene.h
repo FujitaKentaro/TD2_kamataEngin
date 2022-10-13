@@ -77,7 +77,9 @@ class GameScene {
 	float viewAngle = 0.0f;
 
 	//弾
-	Bullet* bullet_ = nullptr;
+	//Bullet* bullet_[50];
+	//弾
+	std::list<std::unique_ptr<Bullet>> bullets_;
 	Vector3 pos;
 	Vector3 moveBul;
 	Vector3 velo;
