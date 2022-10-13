@@ -24,7 +24,9 @@ float Clamp(float min, float max, float num) {
 	}
 	return num;
 }
-GameScene::GameScene() {}
+GameScene::GameScene() {
+	popTime = 0;
+}
 
 GameScene::~GameScene() {
 	delete sprite_;
@@ -77,16 +79,22 @@ void GameScene::Initialize() {
 	viewProjection_.target = Affin::GetWorldTrans(worldTransforms_[0].matWorld_);
 	viewProjection_.eye = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 	viewProjection_.UpdateMatrix();
-
-
-	enemys[0].worldTransForm.translation_ = { -10,0,0 };
-	enemys[1].worldTransForm.translation_ = { 10,0,0 };
-	enemys[2].worldTransForm.translation_ = { 0,0,-10 };
-	enemys[3].worldTransForm.translation_ = { 0,0,10 };
-	enemys[4].worldTransForm.translation_ = { 15,0,10 };
 }
 
 void GameScene::Update() {
+	
+	if (popTime == 0) {
+		for (int i = 0; i < _countof(enemys); i++) {
+			if (enemys[i].isDead == true) {
+				enemys[i].Pop();
+				break;
+			}
+		}
+		popTime = 150;
+	}
+	else {
+		popTime--;
+	}
 
 	ai = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 	viewProjection_.eye = { ai.x,ai.y,ai.z };
@@ -258,7 +266,9 @@ void GameScene::Draw() {
 
 	model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[0]);
 	for (int i = 0; i < _countof(enemys); i++) {
-		model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+		if (enemys[i].isDead == false) {
+			model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+		}
 	}
 
 	if (bullet_) {

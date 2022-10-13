@@ -93,4 +93,5 @@ class GameScene {
 	Vector3 myPos;
 	Vector3 resultRet;
 	Enemy enemys[5];
+	int popTime;
 };

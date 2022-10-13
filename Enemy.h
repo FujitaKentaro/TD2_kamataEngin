@@ -2,6 +2,7 @@
 
 #include "WorldTransform.h"
 #include "Bullet.h"
+#include <random>
 
 class Enemy {
 public:
@@ -25,4 +26,6 @@ public:
 	~Enemy();
 	void CalcVec(Vector3 view);
 	void Update(Vector3 obj);
+	void Pop();
+	void Hit();
 };
