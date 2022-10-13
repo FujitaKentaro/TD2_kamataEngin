@@ -2,7 +2,6 @@
 #include "TextureManager.h"
 #include <cassert>
 
-#include "AxisIndicator.h"
 #include "PrimitiveDrawer.h"
 
 #include <random>
