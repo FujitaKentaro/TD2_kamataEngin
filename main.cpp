@@ -3,7 +3,6 @@
 #include "GameScene.h"
 #include "TextureManager.h"
 #include "WinApp.h"
-#include "AxisIndicator.h"
 #include "PrimitiveDrawer.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -14,7 +13,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Input* input = nullptr;
 	Audio* audio = nullptr;
 	DebugText* debugText = nullptr;
-	AxisIndicator* axisIndicator = nullptr;
 	PrimitiveDrawer* primitiveDrawer = nullptr;
 	GameScene* gameScene = nullptr;
 
@@ -49,10 +47,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 3Dモデル静的初期化
 	Model::StaticInitialize();
 
+
 	// 軸方向表示初期化
 	//axisIndicator = AxisIndicator::GetInstance();
 	//axisIndicator->Initialize();
-
 	primitiveDrawer = PrimitiveDrawer::GetInstance();
 	primitiveDrawer->Initialize();
 #pragma endregion
@@ -72,6 +70,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		input->Update();
 		// ゲームシーンの毎フレーム処理
 		gameScene->Update();
+
 		// 軸表示の更新
 	/*	axisIndicator->Update();*/
 
@@ -79,6 +78,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		dxCommon->PreDraw();
 		// ゲームシーンの描画
 		gameScene->Draw();
+
 		// 軸表示の描画
 		/*axisIndicator->Draw();*/
 		// プリミティブ描画のリセット
