@@ -21,6 +21,7 @@ void Enemy::CalcVec(Vector3 obj) {
 		enemyFront.normalize();
 }
 
+
 void Enemy::Update(Vector3 obj) {
 	//ベクトル計算
 	CalcVec(obj);
