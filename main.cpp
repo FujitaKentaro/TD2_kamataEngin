@@ -18,7 +18,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ゲームウィンドウの作成
 	win = WinApp::GetInstance();
-	win->CreateGameWindow();
+	win->CreateGameWindow("23班");
 
 	// DirectX初期化処理
 	dxCommon = DirectXCommon::GetInstance();
@@ -78,6 +78,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		dxCommon->PreDraw();
 		// ゲームシーンの描画
 		gameScene->Draw();
+		if (input->PushKey(DIK_ESCAPE)) {
+			break;
+		}
 
 		// 軸表示の描画
 		/*axisIndicator->Draw();*/
