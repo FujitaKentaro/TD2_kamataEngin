@@ -21,6 +21,8 @@ public:
 	//time
 	int time;
 
+	int r = 2;
+
 public:
 	Enemy();
 	~Enemy();
@@ -28,4 +30,6 @@ public:
 	void Update(Vector3 obj);
 	void Pop();
 	void Hit();
+	Vector3 GetWorldPosition() { return Affin::GetWorldTrans(worldTransForm.matWorld_); };
+	void OnColision();
 };

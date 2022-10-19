@@ -84,7 +84,7 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
-	
+
 	if (popTime == 0) {
 		for (int i = 0; i < _countof(enemys); i++) {
 			if (enemys[i].isDead == true) {
@@ -134,20 +134,27 @@ void GameScene::Update() {
 	}
 
 	{
+		addspeed = 0;
 		// 回転処理
 		if (input_->PushKey(DIK_RIGHT)) {
 
 			if (KEyeSpeed > 0.0f) {
 				KEyeSpeed *= -1;
 			}
+			else {
+				addspeed -= 0.2;
+			}
 		}
 		else if (input_->PushKey(DIK_LEFT)) {
 			if (KEyeSpeed < 0.0f) {
 				KEyeSpeed *= -1;
 			}
+			else {
+				addspeed += 0.2;
+			}
 		}
 		// 親オブジェクト
-		worldTransforms_[0].rotation_.y += KEyeSpeed;
+		worldTransforms_[0].rotation_.y += KEyeSpeed+addspeed;
 	}
 
 
@@ -166,34 +173,6 @@ void GameScene::Update() {
 		worldTransforms_[i].TransferMatrix();
 
 	}
-	//// 子の更新(子は子で初期化)
-	//{	// カメラ用
-	//	worldTransforms_[1].matWorld_ = Affin::matUnit();
-	//	worldTransforms_[1].matWorld_ = Affin::matTrans(worldTransforms_[1].translation_);
-	//	worldTransforms_[1].matWorld_ *= worldTransforms_[1].parent_->matWorld_;
-	//	worldTransforms_[1].TransferMatrix();
-	//}
-	//{
-	//	worldTransforms_[2].matWorld_ = Affin::matUnit();
-	//	worldTransforms_[2].matWorld_ = Affin::matWorld(worldTransforms_[2].translation_, worldTransforms_[2].rotation_, worldTransforms_[2].scale_);
-	//	//3つ目
-	//	//worldTransforms_[2].matWorld_ *= worldTransforms_[2].parent_->matWorld_;
-	//	worldTransforms_[2].TransferMatrix();
-	//}
-	//{
-	//	worldTransforms_[3].matWorld_ = Affin::matUnit();
-	//	worldTransforms_[3].matWorld_ = Affin::matWorld(worldTransforms_[3].translation_, worldTransforms_[3].rotation_, worldTransforms_[3].scale_);
-	//	//4つ目
-	//	//worldTransforms_[2].matWorld_ *= worldTransforms_[2].parent_->matWorld_;
-	//	worldTransforms_[3].TransferMatrix();
-	//}
-	//{
-	//	worldTransforms_[4].matWorld_ = Affin::matUnit();
-	//	worldTransforms_[4].matWorld_ = Affin::matTrans(worldTransforms_[4].translation_);
-	//	//5つ目
-	//	worldTransforms_[4].matWorld_ *= worldTransforms_[4].parent_->matWorld_;
-	//	worldTransforms_[4].TransferMatrix();
-	//}
 
 	{	// 床
 		floor_.matWorld_ = Affin::matUnit();
@@ -204,17 +183,26 @@ void GameScene::Update() {
 	//自機のワールド座標から3Dレティクルのワールド座標を計算
 	//自機から3Dレティクルへの距離	
 
-	if (input_->PushKey(DIK_DOWN)) {
-		kDistancePlayerTo3DReticle = 20;
-
+	if (input_->PushKey(DIK_DOWN) && kDistancePlayerTo3DReticle < 25) {
+		kDistancePlayerTo3DReticle += 0.1;
+		if (-9<kDistancePlayerTo3DReticle&& kDistancePlayerTo3DReticle<5) {
+			kDistancePlayerTo3DReticle = 5;
+		}
 	}
 	else if (input_->PushKey(DIK_UP)) {
-		kDistancePlayerTo3DReticle = 10;
+		kDistancePlayerTo3DReticle -= 0.1;
+		if (kDistancePlayerTo3DReticle < 5) {
+			kDistancePlayerTo3DReticle = -10;
+		}
+	}
 
-	}
-	else {
+
+	/*else {
 		kDistancePlayerTo3DReticle = 15;
-	}
+	}*/
+	DebugText::GetInstance()->SetPos(20, 200);
+	DebugText::GetInstance()->Printf(
+		"distance:(%f,", kDistancePlayerTo3DReticle);
 
 	Reticle3D();
 
@@ -233,6 +221,48 @@ void GameScene::Update() {
 	for (int i = 0; i < _countof(enemys); i++) {
 		enemys[i].Update(objHome_.translation_);
 	}
+	Vector3 posA, posB;
+	/// <summary>
+	/// 弾と敵の当たり判定
+	/// </summary>
+	for (std::unique_ptr<Bullet>& bullet : bullets_) {
+		posA = bullet->GetWorldPosition();
+		//敵更新
+		for (int i = 0; i < _countof(enemys); i++) {
+			posB = enemys[i].GetWorldPosition();
+
+			float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
+				std::pow(posB.z - posA.z, 2.0f);
+			float lenR = std::pow((enemys[i].r + bullet->r), 2.0);
+
+			// 球と球の交差判定
+			if (a <= lenR) {
+				// 自キャラの衝突時コールバックを呼び出す
+				bullet->OnColision();
+				// 敵弾の衝突時コールバックを呼び出す
+				enemys[i].OnColision();
+			}
+		}
+
+	}
+
+	posA = Affin::GetWorldTrans(objHome_.matWorld_);
+	//弾
+	for (int i = 0; i < _countof(enemys); i++) {
+
+		posB = enemys[i].GetWorldPosition();
+		float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
+			std::pow(posB.z - posA.z, 2.0f);
+		float lenR = std::pow((objHomeR + enemys[i].r), 2.0);
+
+		// 球と球の交差判定
+		if (a <= lenR) {
+
+			// 敵弾の衝突時コールバックを呼び出す
+			enemys[i].OnColision();
+		}
+	}
+
 
 }
 
@@ -277,12 +307,7 @@ void GameScene::Draw() {
 			model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
 		}
 	}
-	/*for (int i = 0; i < _countof(bullet_);) {
-		if (bullet_[i])
-		{
-			bullet_[i]->Draw(viewProjection_);
-		}
-	}*/
+
 	//弾描画
 	for (std::unique_ptr<Bullet>& bullet : bullets_) {
 		bullet->Draw(viewProjection_);
@@ -314,12 +339,12 @@ void GameScene::Attack()
 	{
 		//弾を生成し、初期化
 		std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
-		
+
 		//Bullet* newbullet = new Bullet();
 		pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
+		pos.y -= 5;
 		ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
-		myPos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
-		velo = ret3DPos - myPos;
+		velo = ret3DPos - pos;
 		velo.normalize();
 		resultRet = velo * newBullet->speed;
 		newBullet->Initialize(model_, pos);

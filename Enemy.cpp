@@ -1,24 +1,24 @@
 #include "Enemy.h"
 
-Enemy::Enemy(){
+Enemy::Enemy() {
 	worldTransForm.Initialize();
 	isDead = true;
 	YTmp = { 0,1,0 };
 	speed = 0.0008f;
 }
 
-Enemy::~Enemy(){}
+Enemy::~Enemy() {}
 
 void Enemy::CalcVec(Vector3 obj) {
-		//正面仮ベクトル
-		enemyTmp = obj - worldTransForm.translation_;
-		enemyTmp.normalize();
-		//右ベクトル
-		enemyRight = YTmp.cross(enemyTmp);
-		enemyRight.normalize();
-		//正面ベクトル
-		enemyFront = enemyRight.cross(YTmp);
-		enemyFront.normalize();
+	//正面仮ベクトル
+	enemyTmp = obj - worldTransForm.translation_;
+	enemyTmp.normalize();
+	//右ベクトル
+	enemyRight = YTmp.cross(enemyTmp);
+	enemyRight.normalize();
+	//正面ベクトル
+	enemyFront = enemyRight.cross(YTmp);
+	enemyFront.normalize();
 }
 
 
@@ -33,23 +33,23 @@ void Enemy::Update(Vector3 obj) {
 		worldTransForm.rotation_,
 		worldTransForm.scale_);
 
-		if (isDead == false) {
-			time++;
-			if (time == 2) {
-				speed += 0.0001f;
-				time = 0;
-			}
-			worldTransForm.translation_ += enemyFront* speed;
-		}
-		else if (isDead == true) {
-			speed = 0.0008f;
+	if (isDead == false) {
+		time++;
+		if (time == 2) {
+			speed += 0.0001f;
 			time = 0;
 		}
+		worldTransForm.translation_ += enemyFront * speed;
+	}
+	else if (isDead == true) {
+		speed = 0.0008f;
+		time = 0;
+	}
 
-		//結果を反映
-		worldTransForm.TransferMatrix();
+	//結果を反映
+	worldTransForm.TransferMatrix();
 
-		Hit();
+	Hit();
 }
 
 void Enemy::Pop() {
@@ -59,13 +59,12 @@ void Enemy::Pop() {
 		//乱数生成装置
 		std::random_device seed_gen;
 		std::mt19937_64 engine(seed_gen());
-		std::uniform_real_distribution<float>dist(-10.0f, 10.0f);
-		std::random_device seed_gen_2;
-		std::mt19937_64 engine_2(seed_gen_2());
-		std::uniform_real_distribution<float>dist2(-10.0f, 10.0f);
+		std::uniform_real_distribution<float>dist(20.0f, 50.0f);
+		std::uniform_real_distribution<float>dist2(-1.0f, 1.0f);
+		
 		//乱数
-		float value = dist(engine);
-		float value2 = dist2(engine_2);
+		float value = dist(engine) * dist2(engine);
+		float value2 = dist(engine) * dist2(engine);
 		//
 		worldTransForm.translation_ = { value,0,value2 };
 	}
@@ -79,4 +78,8 @@ void Enemy::Hit() {
 			}
 		}
 	}
+}
+
+void Enemy::OnColision() {
+	isDead = true;
 }
