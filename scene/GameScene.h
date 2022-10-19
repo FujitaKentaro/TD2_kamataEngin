@@ -66,7 +66,10 @@ class GameScene {
 
 	Sprite* sprite_ = nullptr;
 	Model* model_ = nullptr;
+
 	WorldTransform objHome_;
+	int objHomeR=4;			// 中心ブロック半径
+
 	WorldTransform floor_;
 	WorldTransform worldTransforms_[10];
 	ViewProjection viewProjection_;
@@ -86,6 +89,7 @@ class GameScene {
 	Vector3 ai;
 
 	float KEyeSpeed = 0.1f;
+	float addspeed = 0.0f;
 
 
 	// 3Dレティクル用ワールドトランスフォーム
@@ -94,6 +98,6 @@ class GameScene {
 	Vector3 ret3DPos;
 	Vector3 myPos;
 	Vector3 resultRet;
-	Enemy enemys[5];
+	Enemy enemys[50];
 	int popTime;
 };
