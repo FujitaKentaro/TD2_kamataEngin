@@ -22,6 +22,8 @@ public:
 
 	Vector3 GetWorldPosition() { return Affin::GetWorldTrans(worldTransform_.matWorld_); };
 
+	bool IsDead() const { return isDead; }
+
 public:
 	const float speed = 60;
 	const int r = 2;
@@ -31,6 +33,7 @@ private:
 	uint32_t textureHandle_ = 0u;
 
 	bool isDead = false;
+
 
 };
 

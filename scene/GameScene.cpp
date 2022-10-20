@@ -26,6 +26,8 @@ float Clamp(float min, float max, float num) {
 }
 GameScene::GameScene() {
 	popTime = 0;
+	coolTime = 0;
+	killCounter = 0;
 }
 
 GameScene::~GameScene() {
@@ -84,6 +86,9 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
+
+	//デスフラグの立った弾を削除
+	bullets_.remove_if([](std::unique_ptr<Bullet>& bullet) { return bullet->IsDead(); });
 
 	if (popTime == 0) {
 		for (int i = 0; i < _countof(enemys); i++) {
@@ -203,6 +208,9 @@ void GameScene::Update() {
 	DebugText::GetInstance()->SetPos(20, 200);
 	DebugText::GetInstance()->Printf(
 		"distance:(%f,", kDistancePlayerTo3DReticle);
+	DebugText::GetInstance()->SetPos(20, 180);
+	DebugText::GetInstance()->Printf(
+		"KillCounter:(%d,", killCounter);
 
 	Reticle3D();
 
@@ -236,14 +244,19 @@ void GameScene::Update() {
 			float lenR = std::pow((enemys[i].r + bullet->r), 2.0);
 
 			// 球と球の交差判定
-			if (a <= lenR) {
-				// 自キャラの衝突時コールバックを呼び出す
-				bullet->OnColision();
-				// 敵弾の衝突時コールバックを呼び出す
-				enemys[i].OnColision();
+			if (enemys[i].isDead == false) {
+				if (a <= lenR) {
+					// 自キャラの衝突時コールバックを呼び出す
+					bullet->OnColision();
+					// 敵弾の衝突時コールバックを呼び出す
+					enemys[i].OnColision();
+					killCounter++;
+				}
 			}
 		}
-
+		if (posA.y < -10) {
+			bullet->OnColision();
+		}
 	}
 
 	posA = Affin::GetWorldTrans(objHome_.matWorld_);
@@ -335,22 +348,52 @@ void GameScene::Draw() {
 
 void GameScene::Attack()
 {
-	if (input_->TriggerKey(DIK_SPACE))
-	{
-		//弾を生成し、初期化
-		std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
+	if (killCounter > 10) {
+		if (input_->PushKey(DIK_SPACE))
+		{
+			if (coolTime == 0) {
+				//弾を生成し、初期化
+				std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
 
-		//Bullet* newbullet = new Bullet();
-		pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
-		pos.y -= 5;
-		ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
-		velo = ret3DPos - pos;
-		velo.normalize();
-		resultRet = velo * newBullet->speed;
-		newBullet->Initialize(model_, pos);
+				//Bullet* newbullet = new Bullet();
+				pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
+				pos.y -= 5;
+				ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
+				velo = ret3DPos - pos;
+				velo.normalize();
+				resultRet = velo * newBullet->speed;
+				newBullet->Initialize(model_, pos);
+	
+				//弾を登録
+				bullets_.push_back(std::move(newBullet));
 
-		//弾を登録
-		bullets_.push_back(std::move(newBullet));
+				//クールタイムをリセット
+				coolTime = 12;
+			}
+			else {
+				coolTime--;
+			}
+		}
+	}
+	else {
+		if (input_->TriggerKey(DIK_SPACE))
+		{
+			
+				//弾を生成し、初期化
+				std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
+
+				//Bullet* newbullet = new Bullet();
+				pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
+				pos.y -= 5;
+				ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
+				velo = ret3DPos - pos;
+				velo.normalize();
+				resultRet = velo * newBullet->speed;
+				newBullet->Initialize(model_, pos);
+
+				//弾を登録
+				bullets_.push_back(std::move(newBullet));
+		}
 	}
 }
 
