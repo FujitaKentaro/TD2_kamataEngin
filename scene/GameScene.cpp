@@ -24,6 +24,7 @@ float Clamp(float min, float max, float num) {
 	}
 	return num;
 }
+
 GameScene::GameScene() {
 	popTime = 0;
 	coolTime = 0;
@@ -53,6 +54,9 @@ void GameScene::Initialize() {
 	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
 	//3Dモデルの生成
 	model_ = Model::Create();
+	
+	// 変数初期化
+
 	//ワールドトランスフォームの初期化
 	// 中心OBJ
 	objHome_.Initialize();
@@ -87,195 +91,234 @@ void GameScene::Initialize() {
 
 void GameScene::Update() {
 
-	//デスフラグの立った弾を削除
-	bullets_.remove_if([](std::unique_ptr<Bullet>& bullet) { return bullet->IsDead(); });
-
-	if (popTime == 0) {
-		for (int i = 0; i < _countof(enemys); i++) {
-			if (enemys[i].isDead == true) {
-				enemys[i].Pop();
-				break;
-			}
-		}
-		popTime = 150;
-	}
-	else {
-		popTime--;
-	}
-
-	ai = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
-	viewProjection_.eye = { ai.x,ai.y,ai.z };
-	viewProjection_.UpdateMatrix();
-
-	//yの仮ベクトル
-	Vector3 yTmpVec(0, 1, 0);
-	yTmpVec.normalize();
-	//正面仮ベクトル
-	Vector3 frontTmp = viewProjection_.target - viewProjection_.eye;
-	frontTmp.normalize();
-	//右ベクトル
-	Vector3 rightVec = yTmpVec.cross(frontTmp);
-	rightVec.normalize();
-	//左ベクトル
-	Vector3 leftVec = frontTmp.cross(yTmpVec);
-	leftVec.normalize();
-	//正面ベクトル
-	Vector3 frontVec = rightVec.cross(yTmpVec);
-	frontVec.normalize();
-	//背面ベクトル
-	Vector3 behindVec = frontVec * -1;
-
-	//視点の移動速さ
-
-	int a;
-	float kCharacterSpeed = 0.1f;
-
-	Vector3 move = { 0,0,0 };
-
-	{	// 中心オブジェクト
-		objHome_.matWorld_ = Affin::matUnit();
-		objHome_.matWorld_ = Affin::matWorld(objHome_.translation_, objHome_.rotation_, objHome_.scale_);
-		objHome_.TransferMatrix();
-	}
-
+	switch (scene)
 	{
-		addspeed = 0;
-		// 回転処理
-		if (input_->PushKey(DIK_RIGHT)) {
-
-			if (KEyeSpeed > 0.0f) {
-				KEyeSpeed *= -1;
-			}
-			else {
-				addspeed -= 0.2;
-			}
+#pragma region TITLE
+	case 0:
+		if (input_->TriggerKey(DIK_SPACE)) {
+			scene = 1;
 		}
-		else if (input_->PushKey(DIK_LEFT)) {
-			if (KEyeSpeed < 0.0f) {
-				KEyeSpeed *= -1;
-			}
-			else {
-				addspeed += 0.2;
-			}
-		}
-		// 親オブジェクト
-		worldTransforms_[0].rotation_.y += KEyeSpeed+addspeed;
-	}
+		DebugText::GetInstance()->SetPos((1280 / 5)+1280/4, (720 / 4)+720/2);
+		DebugText::GetInstance()->Printf(
+			" PRESS  SPACE ");
 
+		break;
 
-	for (int i = 0; i < _countof(worldTransforms_); i++) {
+#pragma endregion
 
-		worldTransforms_[i].matWorld_ = Affin::matUnit();
-		worldTransforms_[i].matWorld_ = Affin::matWorld(
-			worldTransforms_[i].translation_,
-			worldTransforms_[i].rotation_,
-			worldTransforms_[i].scale_);
+#pragma region GAME SCENE1
+	case 1:
 
-		if (worldTransforms_[i].parent_ != nullptr) {
-			worldTransforms_[i].matWorld_ *= worldTransforms_[i].parent_->matWorld_;
-		}
+		//デスフラグの立った弾を削除
+		bullets_.remove_if([](std::unique_ptr<Bullet>& bullet) { return bullet->IsDead(); });
 
-		worldTransforms_[i].TransferMatrix();
-
-	}
-
-	{	// 床
-		floor_.matWorld_ = Affin::matUnit();
-		floor_.matWorld_ = Affin::matWorld(floor_.translation_, floor_.rotation_, floor_.scale_);
-		floor_.TransferMatrix();
-	}
-
-	//自機のワールド座標から3Dレティクルのワールド座標を計算
-	//自機から3Dレティクルへの距離	
-
-	if (input_->PushKey(DIK_DOWN) && kDistancePlayerTo3DReticle < 25) {
-		kDistancePlayerTo3DReticle += 0.1;
-		if (-9<kDistancePlayerTo3DReticle&& kDistancePlayerTo3DReticle<5) {
-			kDistancePlayerTo3DReticle = 5;
-		}
-	}
-	else if (input_->PushKey(DIK_UP)) {
-		kDistancePlayerTo3DReticle -= 0.1;
-		if (kDistancePlayerTo3DReticle < 5) {
-			kDistancePlayerTo3DReticle = -10;
-		}
-	}
-
-
-	/*else {
-		kDistancePlayerTo3DReticle = 15;
-	}*/
-	DebugText::GetInstance()->SetPos(20, 200);
-	DebugText::GetInstance()->Printf(
-		"distance:(%f,", kDistancePlayerTo3DReticle);
-	DebugText::GetInstance()->SetPos(20, 180);
-	DebugText::GetInstance()->Printf(
-		"KillCounter:(%d,", killCounter);
-
-	Reticle3D();
-
-	Attack();
-	/*for (int i = 0; i < _countof(bullet_);) {
-		if (bullet_[i])
-		{
-			bullet_[i]->Update(resultRet);
-		}
-	}*/
-	for (std::unique_ptr<Bullet>& bullet : bullets_) {
-		bullet->Update(resultRet);
-	}
-
-	//敵更新
-	for (int i = 0; i < _countof(enemys); i++) {
-		enemys[i].Update(objHome_.translation_);
-	}
-	Vector3 posA, posB;
-	/// <summary>
-	/// 弾と敵の当たり判定
-	/// </summary>
-	for (std::unique_ptr<Bullet>& bullet : bullets_) {
-		posA = bullet->GetWorldPosition();
-		//敵更新
-		for (int i = 0; i < _countof(enemys); i++) {
-			posB = enemys[i].GetWorldPosition();
-
-			float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
-				std::pow(posB.z - posA.z, 2.0f);
-			float lenR = std::pow((enemys[i].r + bullet->r), 2.0);
-
-			// 球と球の交差判定
-			if (enemys[i].isDead == false) {
-				if (a <= lenR) {
-					// 自キャラの衝突時コールバックを呼び出す
-					bullet->OnColision();
-					// 敵弾の衝突時コールバックを呼び出す
-					enemys[i].OnColision();
-					killCounter++;
+		if (popTime == 0) {
+			for (int i = 0; i < _countof(enemys); i++) {
+				if (enemys[i].isDead == true) {
+					enemys[i].Pop();
+					break;
 				}
 			}
+			popTime = 150;
 		}
-		if (posA.y < -10) {
-			bullet->OnColision();
+		else {
+			popTime--;
 		}
+
+		ai = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
+		viewProjection_.eye = { ai.x,ai.y,ai.z };
+		viewProjection_.UpdateMatrix();
+
+		//yの仮ベクトル
+		yTmpVec = { 0, 1, 0 };
+		yTmpVec.normalize();
+		//正面仮ベクトル
+		frontTmp = viewProjection_.target - viewProjection_.eye;
+		frontTmp.normalize();
+		//右ベクトル
+		rightVec = yTmpVec.cross(frontTmp);
+		rightVec.normalize();
+		//左ベクトル
+		leftVec = frontTmp.cross(yTmpVec);
+		leftVec.normalize();
+		//正面ベクトル
+		frontVec = rightVec.cross(yTmpVec);
+		frontVec.normalize();
+		//背面ベクトル
+		behindVec = frontVec * -1;
+
+		//視点の移動速さ
+
+		
+		kCharacterSpeed = 0.1f;		
+
+		{	// 中心オブジェクト
+			objHome_.matWorld_ = Affin::matUnit();
+			objHome_.matWorld_ = Affin::matWorld(objHome_.translation_, objHome_.rotation_, objHome_.scale_);
+			objHome_.TransferMatrix();
+		}
+
+		{
+			addspeed = 0;
+			// 回転処理
+			if (input_->PushKey(DIK_RIGHT)) {
+
+				if (KEyeSpeed > 0.0f) {
+					KEyeSpeed *= -1;
+				}
+				else {
+					addspeed -= 0.2;
+				}
+			}
+			else if (input_->PushKey(DIK_LEFT)) {
+				if (KEyeSpeed < 0.0f) {
+					KEyeSpeed *= -1;
+				}
+				else {
+					addspeed += 0.2;
+				}
+			}
+			// 親オブジェクト
+			worldTransforms_[0].rotation_.y += KEyeSpeed + addspeed;
+		}
+
+
+		for (int i = 0; i < _countof(worldTransforms_); i++) {
+
+			worldTransforms_[i].matWorld_ = Affin::matUnit();
+			worldTransforms_[i].matWorld_ = Affin::matWorld(
+				worldTransforms_[i].translation_,
+				worldTransforms_[i].rotation_,
+				worldTransforms_[i].scale_);
+
+			if (worldTransforms_[i].parent_ != nullptr) {
+				worldTransforms_[i].matWorld_ *= worldTransforms_[i].parent_->matWorld_;
+			}
+
+			worldTransforms_[i].TransferMatrix();
+
+		}
+
+		{	// 床
+			floor_.matWorld_ = Affin::matUnit();
+			floor_.matWorld_ = Affin::matWorld(floor_.translation_, floor_.rotation_, floor_.scale_);
+			floor_.TransferMatrix();
+		}
+
+		//自機のワールド座標から3Dレティクルのワールド座標を計算
+		//自機から3Dレティクルへの距離	
+
+		if (input_->PushKey(DIK_DOWN) && kDistancePlayerTo3DReticle < 25) {
+			kDistancePlayerTo3DReticle += 0.1;
+			if (-9 < kDistancePlayerTo3DReticle && kDistancePlayerTo3DReticle < 5) {
+				kDistancePlayerTo3DReticle = 5;
+			}
+		}
+		else if (input_->PushKey(DIK_UP)) {
+			kDistancePlayerTo3DReticle -= 0.1;
+			if (kDistancePlayerTo3DReticle < 5) {
+				kDistancePlayerTo3DReticle = -10;
+			}
+		}
+
+
+		/*else {
+			kDistancePlayerTo3DReticle = 15;
+		}*/
+		DebugText::GetInstance()->SetPos(20, 200);
+		DebugText::GetInstance()->Printf(
+			"distance:(%f,", kDistancePlayerTo3DReticle);
+		DebugText::GetInstance()->SetPos(20, 180);
+		DebugText::GetInstance()->Printf(
+			"KillCounter:(%d,", killCounter);
+
+		Reticle3D();
+
+		Attack();
+		/*for (int i = 0; i < _countof(bullet_);) {
+			if (bullet_[i])
+			{
+				bullet_[i]->Update(resultRet);
+			}
+		}*/
+		for (std::unique_ptr<Bullet>& bullet : bullets_) {
+			bullet->Update(resultRet);
+		}
+
+		//敵更新
+		for (int i = 0; i < _countof(enemys); i++) {
+			enemys[i].Update(objHome_.translation_);
+		}
+	
+		/// <summary>
+		/// 弾と敵の当たり判定
+		/// </summary>
+		for (std::unique_ptr<Bullet>& bullet : bullets_) {
+			posA = bullet->GetWorldPosition();
+			//敵更新
+			for (int i = 0; i < _countof(enemys); i++) {
+				posB = enemys[i].GetWorldPosition();
+
+				float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
+					std::pow(posB.z - posA.z, 2.0f);
+				float lenR = std::pow((enemys[i].r + bullet->r), 2.0);
+
+				// 球と球の交差判定
+				if (enemys[i].isDead == false) {
+					if (a <= lenR) {
+						// 自キャラの衝突時コールバックを呼び出す
+						bullet->OnColision();
+						// 敵弾の衝突時コールバックを呼び出す
+						enemys[i].OnColision();
+						killCounter++;
+					}
+				}
+			}
+			if (posA.y < -10) {
+				bullet->OnColision();
+			}
+		}
+
+		posA = Affin::GetWorldTrans(objHome_.matWorld_);
+		//弾
+		for (int i = 0; i < _countof(enemys); i++) {
+
+			posB = enemys[i].GetWorldPosition();
+			float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
+				std::pow(posB.z - posA.z, 2.0f);
+			float lenR = std::pow((objHomeR + enemys[i].r), 2.0);
+
+			// 球と球の交差判定
+			if (a <= lenR) {
+
+				// 敵弾の衝突時コールバックを呼び出す
+				enemys[i].OnColision();
+			}
+		}
+#pragma endregion
+
+		break;
+	case 2:// victory
+
+		if (input_->TriggerKey(DIK_SPACE)) {
+			scene = 0;
+		}
+		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
+		DebugText::GetInstance()->Printf(
+			" PRESS  SPACE ");
+
+		break;
+	case 3:// game over
+
+		if (input_->TriggerKey(DIK_SPACE)) {
+			scene = 0;
+		}
+		DebugText::GetInstance()->SetPos(1280/2, 720/4);
+		DebugText::GetInstance()->Printf(
+			" PRESS  SPACE ");
+
+		break;
 	}
-
-	posA = Affin::GetWorldTrans(objHome_.matWorld_);
-	//弾
-	for (int i = 0; i < _countof(enemys); i++) {
-
-		posB = enemys[i].GetWorldPosition();
-		float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
-			std::pow(posB.z - posA.z, 2.0f);
-		float lenR = std::pow((objHomeR + enemys[i].r), 2.0);
-
-		// 球と球の交差判定
-		if (a <= lenR) {
-
-			// 敵弾の衝突時コールバックを呼び出す
-			enemys[i].OnColision();
-		}
-	}
-
 
 }
 
@@ -305,25 +348,23 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
-	model_->Draw(objHome_, viewProjection_, textureHandle_[2]);
-	//model_->Draw(worldTransforms_[0], viewProjection_, textureHandle_[0]);
-	model_->Draw(worldTransforms_[1], viewProjection_, textureHandle_[0]);
-	/*model_->Draw(worldTransforms_[2], viewProjection_, textureHandle_[0]);
-	model_->Draw(worldTransforms_[3], viewProjection_, textureHandle_[0]);
-	model_->Draw(worldTransforms_[4], viewProjection_, textureHandle_[0]);*/
-	model_->Draw(floor_, viewProjection_, textureHandle_[1]);
+	if (scene == 1) {
+		model_->Draw(objHome_, viewProjection_, textureHandle_[2]);
+		model_->Draw(worldTransforms_[1], viewProjection_, textureHandle_[0]);
+		model_->Draw(floor_, viewProjection_, textureHandle_[1]);
 
-	model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[4]);
-	for (int i = 0; i < _countof(enemys); i++) {
+		model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[4]);
+		for (int i = 0; i < _countof(enemys); i++) {
 
-		if (enemys[i].isDead == false) {
-			model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+			if (enemys[i].isDead == false) {
+				model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+			}
 		}
-	}
 
-	//弾描画
-	for (std::unique_ptr<Bullet>& bullet : bullets_) {
-		bullet->Draw(viewProjection_);
+		//弾描画
+		for (std::unique_ptr<Bullet>& bullet : bullets_) {
+			bullet->Draw(viewProjection_);
+		}
 	}
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
@@ -363,7 +404,7 @@ void GameScene::Attack()
 				velo.normalize();
 				resultRet = velo * newBullet->speed;
 				newBullet->Initialize(model_, pos);
-	
+
 				//弾を登録
 				bullets_.push_back(std::move(newBullet));
 
@@ -378,21 +419,21 @@ void GameScene::Attack()
 	else {
 		if (input_->TriggerKey(DIK_SPACE))
 		{
-			
-				//弾を生成し、初期化
-				std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
 
-				//Bullet* newbullet = new Bullet();
-				pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
-				pos.y -= 5;
-				ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
-				velo = ret3DPos - pos;
-				velo.normalize();
-				resultRet = velo * newBullet->speed;
-				newBullet->Initialize(model_, pos);
+			//弾を生成し、初期化
+			std::unique_ptr<Bullet> newBullet = std::make_unique<Bullet>();
 
-				//弾を登録
-				bullets_.push_back(std::move(newBullet));
+			//Bullet* newbullet = new Bullet();
+			pos = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
+			pos.y -= 5;
+			ret3DPos = Affin::GetWorldTrans(worldTransform3DReticle_.matWorld_);
+			velo = ret3DPos - pos;
+			velo.normalize();
+			resultRet = velo * newBullet->speed;
+			newBullet->Initialize(model_, pos);
+
+			//弾を登録
+			bullets_.push_back(std::move(newBullet));
 		}
 	}
 }

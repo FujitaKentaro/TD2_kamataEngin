@@ -98,8 +98,30 @@ class GameScene {
 	Vector3 ret3DPos;
 	Vector3 myPos;
 	Vector3 resultRet;
+	// 敵
 	Enemy enemys[50];
 	int popTime;
 	int coolTime;
 	int killCounter;
+
+	// シーン
+	int scene = 0;
+
+	//yの仮ベクトル
+	Vector3 yTmpVec;
+	//正面仮ベクトル
+	Vector3 frontTmp;
+	//右ベクトル
+	Vector3 rightVec;
+	//左ベクトル
+	Vector3 leftVec;
+	//正面ベクトル
+	Vector3 frontVec;
+	//背面ベクトル
+	Vector3 behindVec;
+
+	int a;
+	float kCharacterSpeed = 0.1f;
+	Vector3 posA, posB;
+	Vector3 move = { 0,0,0 };
 };
