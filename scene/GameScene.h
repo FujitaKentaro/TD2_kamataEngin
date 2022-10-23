@@ -100,4 +100,6 @@ class GameScene {
 	Vector3 resultRet;
 	Enemy enemys[50];
 	int popTime;
+	int coolTime;
+	int killCounter;
 };

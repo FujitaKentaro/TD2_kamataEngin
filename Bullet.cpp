@@ -18,6 +18,7 @@ void Bullet::Initialize(Model* model, const Vector3& position)
 
 void Bullet::Update(Vector3 trans)
 {
+
 	worldTransform_.matWorld_ *= Affin::matTrans(trans);
 	//s—ñ‚ÌÄŒvZ
 	worldTransform_.TransferMatrix();
