@@ -45,7 +45,7 @@ void GameScene::Initialize() {
 
 	//ファイル名を指定してテクスチャを入れ込む
 	textureHandle_[0] = TextureManager::Load("mario.jpg");
-	textureHandle_[1] = TextureManager::Load("dog.png");
+	textureHandle_[1] = TextureManager::Load("floor.png");
 	textureHandle_[2] = TextureManager::Load("png.png");
 	textureHandle_[3] = TextureManager::Load("inu.png");
 	textureHandle_[4] = TextureManager::Load("ret.png");
