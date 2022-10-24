@@ -7,11 +7,10 @@ void Bullet::Initialize(Model* model, const Vector3& position)
 	assert(model);
 	model_ = model;
 
-	textureHandle_ = TextureManager::Load("mario.jpg");
-
 	worldTransform_.Initialize();
 
 	//worldTransform_.translation_ = position;
+	worldTransform_.matWorld_ = Affin::matScale(0.5f, 0.5f, 0.5f);
 	worldTransform_.matWorld_ = Affin::matTrans(position);
 	worldTransform_.TransferMatrix();
 }
@@ -24,10 +23,10 @@ void Bullet::Update(Vector3 trans)
 	worldTransform_.TransferMatrix();
 }
 
-void Bullet::Draw(const ViewProjection& viewProjection)
+void Bullet::Draw(const ViewProjection& viewProjection,uint32_t textureHandle)
 {
 	//ƒ‚ƒfƒ‹‚Ì•`‰æ
-	model_->Draw(worldTransform_, viewProjection, textureHandle_);
+	model_->Draw(worldTransform_, viewProjection, textureHandle);
 }
 
 void Bullet::OnColision() {
