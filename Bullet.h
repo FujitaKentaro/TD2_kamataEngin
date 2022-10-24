@@ -16,7 +16,7 @@ public:
 
 	void Update(Vector3 trans);
 
-	void Draw(const ViewProjection& viewProjection);
+	void Draw(const ViewProjection& viewProjection, uint32_t textureHandle);
 
 	void OnColision();
 
@@ -30,7 +30,7 @@ public:
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
-	uint32_t textureHandle_ = 0u;
+
 
 	bool isDead = false;
 

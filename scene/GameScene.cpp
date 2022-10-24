@@ -49,6 +49,8 @@ void GameScene::Initialize() {
 	textureHandle_[2] = TextureManager::Load("png.png");
 	textureHandle_[3] = TextureManager::Load("inu.png");
 	textureHandle_[4] = TextureManager::Load("ret.png");
+	textureHandle_[5] = TextureManager::Load("Bullet.png");
+	textureHandle_[6] = TextureManager::Load("Enemy.png");
 
 	//スプライトの生成
 	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
@@ -225,12 +227,12 @@ void GameScene::Update() {
 		/*else {
 			kDistancePlayerTo3DReticle = 15;
 		}*/
-		DebugText::GetInstance()->SetPos(20, 200);
+		/*DebugText::GetInstance()->SetPos(20, 200);
 		DebugText::GetInstance()->Printf(
-			"distance:(%f,", kDistancePlayerTo3DReticle);
-		DebugText::GetInstance()->SetPos(20, 180);
+			"distance:(%f,", kDistancePlayerTo3DReticle);*/
+		DebugText::GetInstance()->SetPos(30, 180);
 		DebugText::GetInstance()->Printf(
-			"KillCounter:(%d,", killCounter);
+			"KillCounter : %d", killCounter);
 
 		Reticle3D();
 
@@ -350,20 +352,20 @@ void GameScene::Draw() {
 	/// </summary>
 	if (scene == 1) {
 		model_->Draw(objHome_, viewProjection_, textureHandle_[2]);
-		model_->Draw(worldTransforms_[1], viewProjection_, textureHandle_[0]);
+		model_->Draw(worldTransforms_[1], viewProjection_, textureHandle_[5]);
 		model_->Draw(floor_, viewProjection_, textureHandle_[1]);
 
 		model_->Draw(worldTransform3DReticle_, viewProjection_, textureHandle_[4]);
 		for (int i = 0; i < _countof(enemys); i++) {
 
 			if (enemys[i].isDead == false) {
-				model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[0]);
+				model_->Draw(enemys[i].worldTransForm, viewProjection_, textureHandle_[6]);
 			}
 		}
 
 		//弾描画
 		for (std::unique_ptr<Bullet>& bullet : bullets_) {
-			bullet->Draw(viewProjection_);
+			bullet->Draw(viewProjection_, textureHandle_[5]);
 		}
 	}
 	// 3Dオブジェクト描画後処理
@@ -451,14 +453,15 @@ void GameScene::Reticle3D() {
 	}
 	offset *= kDistancePlayerTo3DReticle;
 	worldTransform3DReticle_.translation_ = offset;
+	worldTransform3DReticle_.scale_ = Vector3(0.5f, 0.5f, 0.5f);
 	worldTransform3DReticle_.matWorld_ = Affin::matScale(worldTransform3DReticle_.scale_);
 	worldTransform3DReticle_.matWorld_ = Affin::matTrans(worldTransform3DReticle_.translation_);
 
 	worldTransform3DReticle_.TransferMatrix();
 
-	DebugText::GetInstance()->SetPos(20, 260);
-	DebugText::GetInstance()->Printf(
-		"ReticleObject:(%f,%f,%f)", worldTransform3DReticle_.translation_.x,
-		worldTransform3DReticle_.translation_.y, worldTransform3DReticle_.translation_.z);
+	//DebugText::GetInstance()->SetPos(20, 260);
+	//DebugText::GetInstance()->Printf(
+	//	"ReticleObject:(%f,%f,%f)", worldTransform3DReticle_.translation_.x,
+	//	worldTransform3DReticle_.translation_.y, worldTransform3DReticle_.translation_.z);
 
 }
