@@ -51,6 +51,8 @@ class GameScene {
 
 	void Reticle3D();
 
+	void homeOnColision();
+
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -69,6 +71,9 @@ class GameScene {
 
 	WorldTransform objHome_;
 	int objHomeR=4;			// 中心ブロック半径
+	int homeLife = 20;
+	int isDamage = 0;
+	int damCount = 0;
 
 	WorldTransform floor_;
 	WorldTransform worldTransforms_[10];

@@ -98,6 +98,10 @@ void GameScene::Update() {
 #pragma region TITLE
 	case 0:
 		if (input_->TriggerKey(DIK_SPACE)) {
+			homeLife = 20;
+			isDamage = false;
+			damCount = 0;
+			killCounter = 0;
 			scene = 1;
 		}
 		DebugText::GetInstance()->SetPos((1280 / 5)+1280/4, (720 / 4)+720/2);
@@ -110,6 +114,14 @@ void GameScene::Update() {
 
 #pragma region GAME SCENE1
 	case 1:
+		if (isDamage == true) {
+			damCount++;
+			if (damCount == 30) {
+				isDamage = false;
+				textureHandle_[2] = TextureManager::Load("png.png");
+				damCount = 0;
+			}
+		}
 
 		//デスフラグの立った弾を削除
 		bullets_.remove_if([](std::unique_ptr<Bullet>& bullet) { return bullet->IsDead(); });
@@ -233,6 +245,9 @@ void GameScene::Update() {
 		DebugText::GetInstance()->SetPos(30, 180);
 		DebugText::GetInstance()->Printf(
 			"KillCounter : %d", killCounter);
+		DebugText::GetInstance()->SetPos(30, 120);
+		DebugText::GetInstance()->Printf(
+			"homeLife : %d", homeLife);
 
 		Reticle3D();
 
@@ -288,14 +303,21 @@ void GameScene::Update() {
 			posB = enemys[i].GetWorldPosition();
 			float a = std::pow(posB.x - posA.x, 2.0f) + std::pow(posB.y - posA.y, 2.0f) +
 				std::pow(posB.z - posA.z, 2.0f);
-			float lenR = std::pow((objHomeR + enemys[i].r), 2.0);
+			float lenR = std::pow((enemys[i].r + objHomeR), 2.0);
 
 			// 球と球の交差判定
 			if (a <= lenR) {
 
+				if (enemys[i].isDead == false) {
+					homeOnColision();
+				}
 				// 敵弾の衝突時コールバックを呼び出す
 				enemys[i].OnColision();
 			}
+		}
+
+		if (homeLife == 0) {
+			scene = 3;
 		}
 #pragma endregion
 
@@ -464,4 +486,12 @@ void GameScene::Reticle3D() {
 	//	"ReticleObject:(%f,%f,%f)", worldTransform3DReticle_.translation_.x,
 	//	worldTransform3DReticle_.translation_.y, worldTransform3DReticle_.translation_.z);
 
+}
+
+void GameScene::homeOnColision() {
+	textureHandle_[2] = TextureManager::Load("red.png");
+	if (isDamage == false) {
+		isDamage = true;
+	}
+	homeLife--;
 }
