@@ -23,6 +23,7 @@ public:
 
 	int r = 2;
 
+
 public:
 	Enemy();
 	~Enemy();

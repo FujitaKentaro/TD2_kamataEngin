@@ -36,7 +36,7 @@ void Enemy::Update(Vector3 obj) {
 
 	if (isDead == false) {
 		time++;
-		if (time == 2) {
+		if (time == 6) {
 			speed += 0.0001f;
 			time = 0;
 		}

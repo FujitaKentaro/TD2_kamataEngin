@@ -51,7 +51,9 @@ class GameScene {
 
 	void Reticle3D();
 
-	void homeOnColision();
+	void HomeOnColision();
+
+	int CheckAlive(Enemy enemys[]);
 
   private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
@@ -73,7 +75,7 @@ class GameScene {
 	int objHomeR=4;			// 中心ブロック半径
 	int homeLife = 20;
 	int isDamage = 0;
-	int damCount = 0;
+	int damTimer = 0;
 
 	WorldTransform floor_;
 	WorldTransform worldTransforms_[10];
@@ -108,6 +110,9 @@ class GameScene {
 	int popTime;
 	int coolTime;
 	int killCounter;
+	int popCount = 0;
+	int wave = 0;
+	int waitTimer = 250;
 
 	// シーン
 	int scene = 0;

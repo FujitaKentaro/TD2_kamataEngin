@@ -25,7 +25,7 @@ public:
 	bool IsDead() const { return isDead; }
 
 public:
-	const float speed = 60;
+	const float speed = 100;
 	const int r = 2;
 private:
 	WorldTransform worldTransform_;
