@@ -32,7 +32,10 @@ GameScene::GameScene() {
 }
 
 GameScene::~GameScene() {
-	delete sprite_;
+	delete title;
+	delete tutoliar;
+	delete gameWin;
+	delete gameOver;
 	delete model_;
 }
 
@@ -44,16 +47,22 @@ void GameScene::Initialize() {
 	debugText_ = DebugText::GetInstance();
 
 	//ファイル名を指定してテクスチャを入れ込む
-	textureHandle_[0] = TextureManager::Load("mario.jpg");
+	textureHandle_[0] = TextureManager::Load("gameover.png");
 	textureHandle_[1] = TextureManager::Load("floor.png");
 	textureHandle_[2] = TextureManager::Load("png.png");
 	textureHandle_[3] = TextureManager::Load("inu.png");
 	textureHandle_[4] = TextureManager::Load("ret.png");
 	textureHandle_[5] = TextureManager::Load("Bullet.png");
 	textureHandle_[6] = TextureManager::Load("Enemy.png");
+	textureHandle_[7] = TextureManager::Load("Title.png");
+	textureHandle_[8] = TextureManager::Load("manual.png");
+	textureHandle_[9] = TextureManager::Load("end.png");
 
 	//スプライトの生成
-	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
+	title = Sprite::Create(textureHandle_[7], { 0,0 });
+	tutoliar = Sprite::Create(textureHandle_[8], { 0,0 });
+	gameWin = Sprite::Create(textureHandle_[9], { 0,0 });
+	gameOver = Sprite::Create(textureHandle_[0], { 0,0 });
 	//3Dモデルの生成
 	model_ = Model::Create();
 
@@ -98,18 +107,8 @@ void GameScene::Update() {
 #pragma region TITLE
 	case 0:
 		if (input_->TriggerKey(DIK_SPACE)) {
-			homeLife = 3000;
-			isDamage = false;
-			damTimer = 0;
-			killCounter = 0;
-			scene = 1;
-			wave = 0;
-			waitTimer = 250;
-			textureHandle_[2] = TextureManager::Load("png.png");
+			scene = 4;
 		}
-		DebugText::GetInstance()->SetPos((1280 / 5) + 1280 / 4, (720 / 4) + 720 / 2);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE ");
 
 		break;
 
@@ -154,11 +153,6 @@ void GameScene::Update() {
 		}
 		else {
 			waitTimer--;
-			/*for (int i = 0; i < _countof(enemys); i++) {
-				if (enemys[i].isDead == false) {
-					enemys[i].isDead = true;
-				}
-			}*/
 		}
 		//ウェーブ&勝利判定
 		if (wave >= 0 && popCount == 0) {
@@ -206,7 +200,6 @@ void GameScene::Update() {
 		behindVec = frontVec * -1;
 
 		//視点の移動速さ
-
 
 		kCharacterSpeed = 0.1f;
 
@@ -288,16 +281,13 @@ void GameScene::Update() {
 			"distance:(%f,", kDistancePlayerTo3DReticle);*/
 		DebugText::GetInstance()->SetPos(30, 180);
 		DebugText::GetInstance()->Printf(
-			"KillCounter : %d", killCounter);
-		DebugText::GetInstance()->SetPos(30, 120);
+			"Kill : %d", killCounter);
+		DebugText::GetInstance()->SetPos(30, 60);
 		DebugText::GetInstance()->Printf(
 			"homeLife : %d", homeLife);
-		DebugText::GetInstance()->SetPos(30, 160);
+		DebugText::GetInstance()->SetPos(30, 40);
 		DebugText::GetInstance()->Printf(
 			"wave : %d", wave);
-		DebugText::GetInstance()->SetPos(30, 140);
-		DebugText::GetInstance()->Printf(
-			"popC : %d", popCount);
 
 		Reticle3D();
 
@@ -377,20 +367,32 @@ void GameScene::Update() {
 		if (input_->TriggerKey(DIK_SPACE)) {
 			scene = 0;
 		}
-		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE vic");
 
 		break;
 	case 3:// game over
 
 		if (input_->TriggerKey(DIK_SPACE)) {
 			scene = 0;
+			for (int i = 0; i < _countof(enemys); i++) {
+				if (enemys[i].isDead == false) {
+					enemys[i].isDead = true;
+				}
+			}
 		}
-		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE ");
+		break;
 
+	case 4://操作説明
+		if (input_->TriggerKey(DIK_SPACE)) {
+			homeLife = 15;
+			popCount = 0;
+			isDamage = false;
+			damTimer = 0;
+			killCounter = 0;
+			scene = 1;
+			wave = 0;
+			waitTimer = 250;
+			textureHandle_[2] = TextureManager::Load("png.png");
+		}
 		break;
 	}
 
@@ -451,6 +453,22 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
+	switch (scene) {
+	case 0:
+		title->Draw();
+		break;
+	case 1:
+		break;
+	case 2:
+		gameWin->Draw();
+		break;
+	case 3:
+		gameOver->Draw();
+		break;
+	case 4:
+		tutoliar->Draw();
+		break;
+	}
 
 	// デバッグテキストの描画
 	debugText_->DrawAll(commandList);

@@ -68,7 +68,10 @@ class GameScene {
 	/// 
 	uint32_t textureHandle_[10];
 
-	Sprite* sprite_ = nullptr;
+	Sprite* title = nullptr;
+	Sprite* tutoliar = nullptr;
+	Sprite* gameWin = nullptr;
+	Sprite* gameOver = nullptr;
 	Model* model_ = nullptr;
 
 	WorldTransform objHome_;

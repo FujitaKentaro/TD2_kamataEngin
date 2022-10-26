@@ -5,7 +5,7 @@ Enemy::Enemy() {
 	worldTransForm.translation_ = { 100,0,100 };
 	isDead = true;
 	YTmp = { 0,1,0 };
-	speed = 0.0008f;
+	speed = 0.0004f;
 }
 
 Enemy::~Enemy() {}
