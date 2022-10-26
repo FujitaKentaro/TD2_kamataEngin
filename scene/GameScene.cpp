@@ -56,7 +56,7 @@ void GameScene::Initialize() {
 	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
 	//3Dモデルの生成
 	model_ = Model::Create();
-	
+
 	// 変数初期化
 
 	//ワールドトランスフォームの初期化
@@ -98,13 +98,16 @@ void GameScene::Update() {
 #pragma region TITLE
 	case 0:
 		if (input_->TriggerKey(DIK_SPACE)) {
-			homeLife = 20;
+			homeLife = 3000;
 			isDamage = false;
-			damCount = 0;
+			damTimer = 0;
 			killCounter = 0;
 			scene = 1;
+			wave = 0;
+			waitTimer = 250;
+			textureHandle_[2] = TextureManager::Load("png.png");
 		}
-		DebugText::GetInstance()->SetPos((1280 / 5)+1280/4, (720 / 4)+720/2);
+		DebugText::GetInstance()->SetPos((1280 / 5) + 1280 / 4, (720 / 4) + 720 / 2);
 		DebugText::GetInstance()->Printf(
 			" PRESS  SPACE ");
 
@@ -115,29 +118,70 @@ void GameScene::Update() {
 #pragma region GAME SCENE1
 	case 1:
 		if (isDamage == true) {
-			damCount++;
-			if (damCount == 30) {
+			damTimer++;
+			if (damTimer == 30) {
 				isDamage = false;
 				textureHandle_[2] = TextureManager::Load("png.png");
-				damCount = 0;
+				damTimer = 0;
 			}
 		}
 
 		//デスフラグの立った弾を削除
 		bullets_.remove_if([](std::unique_ptr<Bullet>& bullet) { return bullet->IsDead(); });
 
-		if (popTime == 0) {
-			for (int i = 0; i < _countof(enemys); i++) {
-				if (enemys[i].isDead == true) {
-					enemys[i].Pop();
-					break;
+		//敵ポップ
+		if (waitTimer == 0) {
+			if (popCount > 0) {
+				if (popTime == 0) {
+					for (int i = 0; i < _countof(enemys); i++) {
+						if (enemys[i].isDead == true) {
+							enemys[i].Pop();
+							break;
+						}
+					}
+					popCount--;
+					popTime = 150;
+				}
+				else {
+					popTime--;
 				}
 			}
-			popTime = 150;
+			else {
+				if (wave == 0) {
+					wave = 1;
+				}
+			}
 		}
 		else {
-			popTime--;
+			waitTimer--;
+			/*for (int i = 0; i < _countof(enemys); i++) {
+				if (enemys[i].isDead == false) {
+					enemys[i].isDead = true;
+				}
+			}*/
 		}
+		//ウェーブ&勝利判定
+		if (wave >= 0 && popCount == 0) {
+			if (CheckAlive(enemys) == true) {
+				if (wave < 3) {
+					wave++;
+					if (wave == 3) {
+						popCount = 30;
+					}
+					else if (wave == 2) {
+						popCount = 20;
+					}
+					else if (wave == 1) {
+						popCount = 10;
+					}
+					waitTimer = 250;
+				}
+				else if (wave == 3) {
+					scene = 2;
+				}
+			}
+		}
+
 
 		ai = Affin::GetWorldTrans(worldTransforms_[1].matWorld_);
 		viewProjection_.eye = { ai.x,ai.y,ai.z };
@@ -163,8 +207,8 @@ void GameScene::Update() {
 
 		//視点の移動速さ
 
-		
-		kCharacterSpeed = 0.1f;		
+
+		kCharacterSpeed = 0.1f;
 
 		{	// 中心オブジェクト
 			objHome_.matWorld_ = Affin::matUnit();
@@ -248,6 +292,12 @@ void GameScene::Update() {
 		DebugText::GetInstance()->SetPos(30, 120);
 		DebugText::GetInstance()->Printf(
 			"homeLife : %d", homeLife);
+		DebugText::GetInstance()->SetPos(30, 160);
+		DebugText::GetInstance()->Printf(
+			"wave : %d", wave);
+		DebugText::GetInstance()->SetPos(30, 140);
+		DebugText::GetInstance()->Printf(
+			"popC : %d", popCount);
 
 		Reticle3D();
 
@@ -266,7 +316,7 @@ void GameScene::Update() {
 		for (int i = 0; i < _countof(enemys); i++) {
 			enemys[i].Update(objHome_.translation_);
 		}
-	
+
 		/// <summary>
 		/// 弾と敵の当たり判定
 		/// </summary>
@@ -309,7 +359,7 @@ void GameScene::Update() {
 			if (a <= lenR) {
 
 				if (enemys[i].isDead == false) {
-					homeOnColision();
+					HomeOnColision();
 				}
 				// 敵弾の衝突時コールバックを呼び出す
 				enemys[i].OnColision();
@@ -329,7 +379,7 @@ void GameScene::Update() {
 		}
 		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
 		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE ");
+			" PRESS  SPACE vic");
 
 		break;
 	case 3:// game over
@@ -337,7 +387,7 @@ void GameScene::Update() {
 		if (input_->TriggerKey(DIK_SPACE)) {
 			scene = 0;
 		}
-		DebugText::GetInstance()->SetPos(1280/2, 720/4);
+		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
 		DebugText::GetInstance()->Printf(
 			" PRESS  SPACE ");
 
@@ -488,10 +538,27 @@ void GameScene::Reticle3D() {
 
 }
 
-void GameScene::homeOnColision() {
+void GameScene::HomeOnColision() {
 	textureHandle_[2] = TextureManager::Load("red.png");
 	if (isDamage == false) {
 		isDamage = true;
 	}
 	homeLife--;
+}
+
+int GameScene::CheckAlive(Enemy enemys[]) {
+	int aliveNum = 0;
+
+	for (int i = 0; i < 50; i++) {
+		if (enemys[i].isDead == false) {
+			aliveNum++;
+		}
+	}
+
+	if (aliveNum == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
