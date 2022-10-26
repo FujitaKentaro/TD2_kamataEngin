@@ -35,6 +35,7 @@ GameScene::~GameScene() {
 	delete title;
 	delete tutoliar;
 	delete gameWin;
+	delete gameOver;
 	delete model_;
 }
 
@@ -46,7 +47,7 @@ void GameScene::Initialize() {
 	debugText_ = DebugText::GetInstance();
 
 	//ファイル名を指定してテクスチャを入れ込む
-	textureHandle_[0] = TextureManager::Load("mario.jpg");
+	textureHandle_[0] = TextureManager::Load("gameover.png");
 	textureHandle_[1] = TextureManager::Load("floor.png");
 	textureHandle_[2] = TextureManager::Load("png.png");
 	textureHandle_[3] = TextureManager::Load("inu.png");
@@ -61,6 +62,7 @@ void GameScene::Initialize() {
 	title = Sprite::Create(textureHandle_[7], { 0,0 });
 	tutoliar = Sprite::Create(textureHandle_[8], { 0,0 });
 	gameWin = Sprite::Create(textureHandle_[9], { 0,0 });
+	gameOver = Sprite::Create(textureHandle_[0], { 0,0 });
 	//3Dモデルの生成
 	model_ = Model::Create();
 
@@ -279,16 +281,13 @@ void GameScene::Update() {
 			"distance:(%f,", kDistancePlayerTo3DReticle);*/
 		DebugText::GetInstance()->SetPos(30, 180);
 		DebugText::GetInstance()->Printf(
-			"KillCounter : %d", killCounter);
-		DebugText::GetInstance()->SetPos(30, 120);
+			"Kill : %d", killCounter);
+		DebugText::GetInstance()->SetPos(30, 60);
 		DebugText::GetInstance()->Printf(
 			"homeLife : %d", homeLife);
-		DebugText::GetInstance()->SetPos(30, 160);
+		DebugText::GetInstance()->SetPos(30, 40);
 		DebugText::GetInstance()->Printf(
 			"wave : %d", wave);
-		DebugText::GetInstance()->SetPos(30, 140);
-		DebugText::GetInstance()->Printf(
-			"popC : %d", popCount);
 
 		Reticle3D();
 
@@ -368,9 +367,6 @@ void GameScene::Update() {
 		if (input_->TriggerKey(DIK_SPACE)) {
 			scene = 0;
 		}
-		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE vic");
 
 		break;
 	case 3:// game over
@@ -383,10 +379,6 @@ void GameScene::Update() {
 				}
 			}
 		}
-		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE ");
-
 		break;
 
 	case 4://操作説明
@@ -471,6 +463,7 @@ void GameScene::Draw() {
 		gameWin->Draw();
 		break;
 	case 3:
+		gameOver->Draw();
 		break;
 	case 4:
 		tutoliar->Draw();

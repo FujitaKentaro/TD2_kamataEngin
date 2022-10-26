@@ -71,6 +71,7 @@ class GameScene {
 	Sprite* title = nullptr;
 	Sprite* tutoliar = nullptr;
 	Sprite* gameWin = nullptr;
+	Sprite* gameOver = nullptr;
 	Model* model_ = nullptr;
 
 	WorldTransform objHome_;
