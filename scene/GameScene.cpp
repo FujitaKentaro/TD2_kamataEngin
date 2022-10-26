@@ -32,7 +32,9 @@ GameScene::GameScene() {
 }
 
 GameScene::~GameScene() {
-	delete sprite_;
+	delete title;
+	delete tutoliar;
+	delete gameWin;
 	delete model_;
 }
 
@@ -51,9 +53,14 @@ void GameScene::Initialize() {
 	textureHandle_[4] = TextureManager::Load("ret.png");
 	textureHandle_[5] = TextureManager::Load("Bullet.png");
 	textureHandle_[6] = TextureManager::Load("Enemy.png");
+	textureHandle_[7] = TextureManager::Load("Title.png");
+	textureHandle_[8] = TextureManager::Load("manual.png");
+	textureHandle_[9] = TextureManager::Load("end.png");
 
 	//スプライトの生成
-	sprite_ = Sprite::Create(textureHandle_[0], { 100,50 });
+	title = Sprite::Create(textureHandle_[7], { 0,0 });
+	tutoliar = Sprite::Create(textureHandle_[8], { 0,0 });
+	gameWin = Sprite::Create(textureHandle_[9], { 0,0 });
 	//3Dモデルの生成
 	model_ = Model::Create();
 
@@ -98,19 +105,8 @@ void GameScene::Update() {
 #pragma region TITLE
 	case 0:
 		if (input_->TriggerKey(DIK_SPACE)) {
-			homeLife = 15;
-			popCount = 0;
-			isDamage = false;
-			damTimer = 0;
-			killCounter = 0;
-			scene = 1;
-			wave = 0;
-			waitTimer = 250;
-			textureHandle_[2] = TextureManager::Load("png.png");
+			scene = 4;
 		}
-		DebugText::GetInstance()->SetPos((1280 / 5) + 1280 / 4, (720 / 4) + 720 / 2);
-		DebugText::GetInstance()->Printf(
-			" PRESS  SPACE ");
 
 		break;
 
@@ -202,7 +198,6 @@ void GameScene::Update() {
 		behindVec = frontVec * -1;
 
 		//視点の移動速さ
-
 
 		kCharacterSpeed = 0.1f;
 
@@ -393,6 +388,20 @@ void GameScene::Update() {
 			" PRESS  SPACE ");
 
 		break;
+
+	case 4://操作説明
+		if (input_->TriggerKey(DIK_SPACE)) {
+			homeLife = 15;
+			popCount = 0;
+			isDamage = false;
+			damTimer = 0;
+			killCounter = 0;
+			scene = 1;
+			wave = 0;
+			waitTimer = 250;
+			textureHandle_[2] = TextureManager::Load("png.png");
+		}
+		break;
 	}
 
 }
@@ -452,6 +461,21 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
+	switch (scene) {
+	case 0:
+		title->Draw();
+		break;
+	case 1:
+		break;
+	case 2:
+		gameWin->Draw();
+		break;
+	case 3:
+		break;
+	case 4:
+		tutoliar->Draw();
+		break;
+	}
 
 	// デバッグテキストの描画
 	debugText_->DrawAll(commandList);
