@@ -98,7 +98,8 @@ void GameScene::Update() {
 #pragma region TITLE
 	case 0:
 		if (input_->TriggerKey(DIK_SPACE)) {
-			homeLife = 3000;
+			homeLife = 15;
+			popCount = 0;
 			isDamage = false;
 			damTimer = 0;
 			killCounter = 0;
@@ -154,11 +155,6 @@ void GameScene::Update() {
 		}
 		else {
 			waitTimer--;
-			/*for (int i = 0; i < _countof(enemys); i++) {
-				if (enemys[i].isDead == false) {
-					enemys[i].isDead = true;
-				}
-			}*/
 		}
 		//ウェーブ&勝利判定
 		if (wave >= 0 && popCount == 0) {
@@ -386,6 +382,11 @@ void GameScene::Update() {
 
 		if (input_->TriggerKey(DIK_SPACE)) {
 			scene = 0;
+			for (int i = 0; i < _countof(enemys); i++) {
+				if (enemys[i].isDead == false) {
+					enemys[i].isDead = true;
+				}
+			}
 		}
 		DebugText::GetInstance()->SetPos(1280 / 2, 720 / 4);
 		DebugText::GetInstance()->Printf(
